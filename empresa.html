@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="css/datatables.css">
+	<link rel="stylesheet" type="text/css" href="css/select2.css">
+    <link rel="stylesheet" type="text/css" href="css/sweetalert2.css">
+    
+    <title>empresas</title>
+    <Style>
+            #cuerpo{
+                background-image: url("img/empresas.jpg");
+                background-size: 100%;
+            }
+    
+    </Style>
+</head>
+<body id="cuerpo" class="container">
+    <br><br>
+    <div class="container">
+        <form id="form-empresa"> 
+            <input type="hidden" id="tipo-ingreso" name="tipo-ingreso" value="empresa">
+            <div class="form-row">
+                
+                <div class="form-group col-md-4">
+                    <label for="nit">NIT</label>
+                    <input type="text" class="form-control" id="nit" name="nit">
+                </div>
+                <div class="form-group col-md-4">
+                        <label for="tipoEmpresa">tipo documento</label>
+                        <select id="tipoEmpresa" name="tipoEmpresa" class="form-control">
+                            <option selected>seleccione tipo de empresa</option>
+                            <option>juridica</option>
+                            <option>natural</option>
+                        </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group col-md-5">
+                    <label for="nombres">nombre</label>
+                    <input type="text" class="form-control" id="nombres" name="nombres" placeholder="nombre">
+                </div>
+                <div class="form-group col-md-5">
+                    <label for="apellido">telefono</label>
+                    <input type="text" class="form-control" id="telefono" name="telefono" placeholder="telefono">
+                </div>
+            </div>
+
+            <div class="form-row">
+
+                <div class="form-group col-md-4">
+                    <label for="direccion">direccion</label>
+                    <input type="text" class="form-control" id="direccion" name="direccion" placeholder=" ">
+                </div>
+
+                <div class="form-group col-sm-3">
+                        <label for="email">email</label>
+                        <input type="email" class="form-control" id="email" name="email">
+                </div>
+            </div>
+
+            <div class="form-row">
+                    <div class="form-group col-md-10">
+                        <button id="ingresado" type="submit" class="btn btn-success">ingresar</button>
+                    </div>
+            </div>
+        </form>
+    
+
+    </div>
+    
+    <div class="container">
+        <button id="mostrar" >Traer datos</button> | <button id="ocultar" >Ocultar Datos</button>
+    </div>
+
+    
+
+    <div class="table-responsive">
+            <table id="tabla" style="display:none;" class="table table-hover table-stripped table-bordered">
+                <thead>
+                    <tr>
+                        <th>NIT</th>
+                        <th>tipo empresa</th> 	
+                        <th>nombres</th> 	
+                        <th>telefono</th> 	
+                        <th>direccion</th> 	
+                        <th>email</th> 	                        
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                </tbody>
+            </table>
+    </div>
+
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="js/select2.js"></script>
+	<script type="text/javascript" src="js/sweetalert2.js"></script>
+	<script type="text/javascript" src="js/datatables.js"></script>
+    <script type="text/javascript" src="lang/spanish.json"></script>
+
+    <script type="text/javascript">
+		
+		$('#mostrar').click(function(){
+			llenarTabla();
+		});
+
+		function llenarTabla(){
+
+            var cod = $('#nit').val();
+            var busqueda = "empresas";
+            
+			$.post('proceso.php', {'tipo-busqueda':busqueda,'nit':cod}, function(data){
+
+				datos = JSON.parse(data);
+				tabla = "";
+				$.each(datos, function(index, value){
+					tabla += "<tr>";
+		    		tabla += "<td>"+value.nit+"</td>";
+		    		tabla += "<td>"+value.tipoEmpresa+"</td>";
+		    		tabla += "<td>"+value.nombres+"</td>";
+		    		tabla += "<td>"+value.telefono+"</td>";
+		    		tabla += "<td>"+value.direccion+"</td>";
+		    		tabla += "<td>"+value.email+"</td>";
+		    		tabla += "</tr>";
+				})
+
+		    	$('#tabla tbody').append(tabla);
+
+				$('#tabla').show();		    	
+
+				$('#tabla').DataTable({
+					"language": {
+			            "url": "lang/spanish.json"
+			        }
+                });
+               
+			});
+
+			Swal.fire('Info', 'Datos cargados!', 'success');
+		}
+
+
+        $('#ocultar').click(function(){
+
+            Swal.fire({
+            title: 'Pregunta?',
+            text: 'Desea ocultar la tabla!',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes!',
+            cancelButtonText: 'No'
+            }).then((result) => {
+            if (result.value) {
+                $('#tabla').hide(1000);
+                $('#tabla').DataTable( {
+                                destroy: true,
+                                searching: false
+                            } );
+                Swal.fire(
+                'Deleted!',
+                'Tabla cerrada',
+                'error'
+                )
+            }
+            })
+
+
+        });
+
+        
+	
+        /*$('#ingresado').click(function(){
+            $.post( "ingreso.php", $( "#form-empleado" ).serialize());
+        });*/
+        
+        $('#ingresado').click(function(){
+            var datos=$('#form-empresa').serialize();
+            $.ajax({
+                type:"POST",
+                url:"ingreso.php",
+                data: datos,
+                success:function(rs){
+                    if(rs){
+                        Swal.fire('Info', 'Datos ingresados!', 'success');
+                        
+                    }else{
+                        Swal.fire('Info', 'no cargaron!', 'warning');;
+                    }
+                }
+            });
+            return false;
+        });
+        
+        
+        $('#ingresado').click(function(){
+			llenarTabla();
+		});
+        
+	</script>
+
+    
+    
+         
+</body>
+</html>
